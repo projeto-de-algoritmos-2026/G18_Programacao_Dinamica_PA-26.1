@@ -80,5 +80,61 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/api/jogadores", methods=["GET"])
+def api_jogadores():
+    return jsonify(players)
+
+
+@app.route("/api/montar-time", methods=["POST"])
+def api_montar_time():
+    data = request.get_json(force=True) or {}
+    orcamento = int(data.get("orcamento", 250))
+    posicoes = data.get("posicoes", {"GK": 1, "DEF": 4, "MID": 3, "ATK": 3})
+    selecao = data.get("selecao")  # filtro opcional por seleção
+
+    pool = players
+    if selecao:
+        pool = [p for p in pool if p["selecao"] == selecao]
+
+    total_vagas = sum(posicoes.values()) or 1
+
+    time_final = []
+    gasto_total = 0
+    overall_total = 0
+
+    for posicao, vagas in posicoes.items():
+        if vagas <= 0:
+            continue
+        candidatos = [p for p in pool if p["posicao"] == posicao]
+        orcamento_posicao = int(orcamento * (vagas / total_vagas))
+
+        melhores = []
+        orc_restante = orcamento_posicao
+        candidatos_restantes = candidatos
+        # repete o knapsack "vagas" vezes para preencher cada posição com o
+        # melhor jogador possível dentro da fração de orçamento dela
+        for _ in range(vagas):
+            if not candidatos_restantes or orc_restante <= 0:
+                break
+            selecionados, _ = knapsack_time(candidatos_restantes, orc_restante)
+            if not selecionados:
+                break
+            escolhido = max(selecionados, key=lambda p: p["overall"])
+            melhores.append(escolhido)
+            orc_restante -= escolhido["preco"]
+            candidatos_restantes = [p for p in candidatos_restantes if p["id"] != escolhido["id"]]
+
+        time_final.extend(melhores)
+        gasto_total += sum(p["preco"] for p in melhores)
+        overall_total += sum(p["overall"] for p in melhores)
+
+    return jsonify({
+        "jogadores": time_final,
+        "overall_total": overall_total,
+        "gasto": gasto_total,
+        "sobrou": orcamento - gasto_total,
+    })
+
+
 if __name__ == "__main__":
     app.run(debug=True)
