@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dream Team Builder — Copa do Mundo 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <header class="app-header">
+    <h1>⚡ Dream Team Builder <span>— Copa do Mundo 2026</span></h1>
+    <div class="algo-badge">Algoritmo: Knapsack 0/1 | Itens: 33 jogadores | Capacidade: <span id="capacidade-badge">250</span>M€</div>
+  </header>
+
+  <main class="app-grid">
+
+    <section class="panel panel-left" id="painel-esquerdo">
+      <!-- filtros e lista de jogadores disponíveis -->
+    </section>
+
+    <section class="panel panel-center" id="painel-central">
+      <!-- campo de futebol -->
+    </section>
+
+    <section class="panel panel-right" id="painel-direito">
+      <!-- resumo do time montado -->
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    Powered by Knapsack 0/1 — Programação Dinâmica
+  </footer>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
