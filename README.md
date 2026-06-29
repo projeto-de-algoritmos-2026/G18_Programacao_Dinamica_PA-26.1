@@ -30,7 +30,9 @@ O resultado é exibido em uma interface web interativa (Flask + JS), com:
 
 ## Screenshots
 
-*(adicione aqui prints da aplicação rodando, ex.: `assets/dream-team.png`)*
+| Dream Team Builder |
+|---|
+| ![Tela do Dream Team Builder](assets/dream-team.png) |
 
 ## Instalação
 
@@ -64,24 +66,42 @@ Acesse `http://127.0.0.1:5000` no navegador. Na interface:
 
 ## Outros
 
-### Como funciona a Programação Dinâmica (Knapsack 0/1)
+### Como funciona a Programação Dinâmica (Knapsack 0/1 com vagas limitadas)
+
+A sugestão automática (`montar_time` em `app.py`) resolve o problema em duas etapas de DP:
+
+**1. Por posição — knapsack 0/1 com limite de itens**
 
 ```
-knapsack_time(jogadores, orcamento):
-    dp[i][w] = maior overall somado usando os i primeiros jogadores
-               com orçamento w
+_tabela_posicao(jogadores, vagas, W):
+    dp[i][k][w] = maior overall somado escolhendo EXATAMENTE k jogadores
+                  distintos entre os i primeiros candidatos da posição,
+                  com custo total <= w
 
     para cada jogador i (1..n):
-        para cada orçamento w (0..W):
-            dp[i][w] = dp[i-1][w]                                  # não pega o jogador i
-            se preco[i] <= w:
-                dp[i][w] = max(dp[i][w], overall[i] + dp[i-1][w-preco[i]])  # pega o jogador i
+        para cada k (0..vagas):
+            para cada orçamento w (0..W):
+                dp[i][k][w] = dp[i-1][k][w]                                  # não pega o jogador i
+                se k > 0 e preco[i] <= w:
+                    dp[i][k][w] = max(dp[i][k][w], overall[i] + dp[i-1][k-1][w-preco[i]])  # pega o jogador i
 
-    backtracking em dp para recuperar quais jogadores foram selecionados
+    backtracking comparando dp[i][k][w] com dp[i-1][k][w] recupera os jogadores escolhidos
 ```
 
-- **Subestrutura ótima**: a melhor escolha entre os i primeiros jogadores depende apenas da melhor escolha entre os i−1 primeiros.
-- **Subproblemas sobrepostos**: `dp[i][w]` é reaproveitado por várias combinações de jogadores e orçamentos, por isso a tabela evita recomputação.
-- **Complexidade**: O(n · W), onde n é o número de jogadores e W é o orçamento (capacidade da mochila).
+A dimensão `k` é o que diferencia esse knapsack do clássico: sem ela, o algoritmo poderia gastar todo o orçamento em poucos jogadores caros e deixar vagas vazias mesmo havendo opções baratas disponíveis.
 
-No `app.py`, o orçamento total é dividido proporcionalmente entre as posições da formação (GK, DEF, MID, ATK) e o knapsack é resolvido posição a posição, escolhendo a cada rodada o jogador de maior overall dentro do conjunto ótimo retornado, até preencher todas as vagas.
+**2. Entre posições — convolução de orçamento (max, +)**
+
+Dividir o orçamento total de forma fixa e proporcional entre GK/DEF/MID/ATK deixa "sobras" presas numa posição barata (ex. goleiro) que não podem cobrir uma posição cara (ex. ataque) — o time fica incompleto mesmo havendo orçamento total suficiente. Por isso as quatro tabelas de posição são combinadas par a par:
+
+```
+_combina_orcamento(f, g, W):
+    para cada orçamento total w (0..W):
+        h[w] = max sobre w1 + w2 <= w de f[w1] + g[w2]
+```
+
+testando toda divisão possível do orçamento entre os dois grupos e guardando a melhor. Repetindo essa combinação três vezes (GK+DEF, +MID, +ATK), o orçamento flui livremente entre posições e o time fecha completo a partir de ~205M€ para qualquer seleção e formação — bem perto do custo mínimo teórico (~201M€).
+
+- **Subestrutura ótima**: a melhor escolha de k jogadores entre os i primeiros depende apenas da melhor escolha entre os i−1 primeiros.
+- **Subproblemas sobrepostos**: `dp[i][k][w]` é reaproveitado por várias combinações de jogadores, vagas e orçamentos.
+- **Complexidade**: O(n · vagas · W) por posição, mais O(W²) por combinação entre posições (3 combinações no total) — todas pequenas o suficiente para rodar em menos de 150ms por requisição.
