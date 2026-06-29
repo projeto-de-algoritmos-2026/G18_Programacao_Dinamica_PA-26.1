@@ -19,7 +19,47 @@
   <main class="app-grid">
 
     <section class="panel panel-left" id="painel-esquerdo">
-      <!-- filtros e lista de jogadores disponíveis -->
+      <h2 class="panel-title">🎛️ Filtros &amp; Controles</h2>
+
+      <div class="control-group">
+        <label for="orcamento-slider">💰 Orçamento <span id="orcamento-valor">250</span>M€</label>
+        <input type="range" id="orcamento-slider" min="50" max="400" step="5" value="250">
+      </div>
+
+      <div class="control-group">
+        <label for="formacao-select">🧩 Formação</label>
+        <select id="formacao-select">
+          <option value="4-3-3" selected>4-3-3</option>
+          <option value="4-4-2">4-4-2</option>
+          <option value="3-5-2">3-5-2</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="selecao-filter">🌍 Filtrar por seleção</label>
+        <select id="selecao-filter">
+          <option value="">Todas as seleções</option>
+          <option value="Brasil">🇧🇷 Brasil</option>
+          <option value="Argentina">🇦🇷 Argentina</option>
+          <option value="França">🇫🇷 França</option>
+          <option value="Portugal">🇵🇹 Portugal</option>
+          <option value="Bélgica">🇧🇪 Bélgica</option>
+          <option value="Espanha">🇪🇸 Espanha</option>
+          <option value="Inglaterra">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra</option>
+          <option value="Alemanha">🇩🇪 Alemanha</option>
+          <option value="Holanda">🇳🇱 Holanda</option>
+          <option value="Croácia">🇭🇷 Croácia</option>
+          <option value="Uruguai">🇺🇾 Uruguai</option>
+          <option value="Noruega">🇳🇴 Noruega</option>
+          <option value="Egito">🇪🇬 Egito</option>
+          <option value="Itália">🇮🇹 Itália</option>
+        </select>
+      </div>
+
+      <button id="btn-montar" class="btn-montar">⚡ MONTAR TIME IDEAL</button>
+
+      <h3 class="panel-subtitle">Jogadores disponíveis</h3>
+      <div class="players-list" id="players-list"></div>
     </section>
 
     <section class="panel panel-center" id="painel-central">
@@ -27,7 +67,30 @@
     </section>
 
     <section class="panel panel-right" id="painel-direito">
-      <!-- resumo do time montado -->
+      <h2 class="panel-title">📊 Resumo do Time</h2>
+
+      <div class="overall-display">
+        <span class="overall-number" id="overall-medio">0</span>
+        <span class="overall-label">OVERALL MÉDIO</span>
+      </div>
+
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-labels">
+          <span id="gasto-valor">0M€</span>
+          <span id="orcamento-total-valor">/ 250M€</span>
+        </div>
+        <div class="budget-bar">
+          <div class="budget-bar-fill" id="budget-bar-fill"></div>
+        </div>
+        <div class="budget-sobrou">Sobrou: <span id="sobrou-valor">0M€</span></div>
+      </div>
+
+      <div class="team-list" id="team-list"></div>
+
+      <div class="action-buttons">
+        <button id="btn-resetar" class="btn-secondary">🔄 Resetar</button>
+        <button id="btn-compartilhar" class="btn-secondary">📤 Compartilhar</button>
+      </div>
     </section>
 
   </main>
