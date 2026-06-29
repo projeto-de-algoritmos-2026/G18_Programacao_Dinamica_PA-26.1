@@ -66,6 +66,14 @@ h1, h2, h3 {
   color: var(--color-black);
 }
 
+.subtitulo {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-dim);
+  max-width: 480px;
+}
+
 .app-header h1 .accent {
   color: var(--color-orange);
 }
@@ -124,6 +132,43 @@ h1, h2, h3 {
 
 .list-label {
   margin-top: 18px;
+}
+
+.list-sub {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+  color: var(--color-text-dim);
+  opacity: 0.7;
+}
+
+/* ===== AVISO DE SELEÇÃO ATIVA (picker) ===== */
+.picker-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-white);
+  background: var(--color-orange);
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.picker-hint #picker-hint-cancelar {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  font-size: 1rem;
+  color: var(--color-white);
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 /* ===== CONTROLES (painel esquerdo) ===== */
@@ -233,6 +278,8 @@ h1, h2, h3 {
   border-bottom: 1px solid var(--color-cream-soft);
   border-left: 4px solid transparent;
   background: var(--color-white);
+  cursor: pointer;
+  transition: background 0.12s ease;
 }
 
 .player-row:last-child {
@@ -241,6 +288,15 @@ h1, h2, h3 {
 
 .player-row:hover {
   background: var(--color-cream);
+}
+
+.player-row.used {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.player-row.used:hover {
+  background: var(--color-white);
 }
 
 .player-row.pos-GK  { border-left-color: var(--color-gk); }
@@ -356,11 +412,27 @@ h1, h2, h3 {
   gap: 2px;
   width: 90px;
   transform: translate(-50%, -50%) scale(0.85);
-  opacity: 0;
+  cursor: pointer;
 }
 
 .field-slot.filled {
+  opacity: 0;
   animation: slot-appear 0.45s ease forwards;
+}
+
+.field-slot.empty {
+  opacity: 0.85;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.field-slot.empty:hover {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(0.92);
+}
+
+.field-slot.active .slot-circle {
+  box-shadow: 0 0 0 4px rgba(230, 85, 47, 0.55);
+  border-color: var(--color-orange);
 }
 
 .slot-circle {
@@ -375,6 +447,30 @@ h1, h2, h3 {
   background: var(--color-white);
   border: 2px solid var(--color-border);
   border-radius: 50%;
+}
+
+.slot-circle.slot-placeholder {
+  color: var(--color-text-dim);
+  background: rgba(255, 255, 255, 0.65);
+  border-style: dashed;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.slot-remove {
+  position: absolute;
+  top: -6px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+  font-size: 0.85rem;
+  color: var(--color-white);
+  background: var(--color-orange-dark);
+  border: 1.5px solid var(--color-border);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2;
 }
 
 .slot-name {

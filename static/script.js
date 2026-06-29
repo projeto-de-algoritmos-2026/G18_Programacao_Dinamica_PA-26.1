@@ -1,7 +1,9 @@
 // ===== ESTADO =====
 let todosJogadores = [];
-let timeAtual = null;
 let formacaoAtual = "4-3-3";
+let estadoTime = [];      // por slot: jogador escolhido ou null
+let slotAtivo = null;     // índice do slot esperando escolha (ou null)
+let timeEstavaCompleto = false;
 
 const FLAGS = {
   "Brasil": "🇧🇷", "Argentina": "🇦🇷", "França": "🇫🇷", "Portugal": "🇵🇹",
@@ -50,11 +52,15 @@ const el = {
   orcamentoSlider: $("orcamento-slider"),
   orcamentoValor: $("orcamento-valor"),
   capacidadeBadge: $("capacidade-badge"),
+  totalJogadoresBadge: $("total-jogadores-badge"),
   formationGrid: $("formation-grid"),
   formacaoAtualLabel: $("formacao-atual-label"),
   selecaoFilter: $("selecao-filter"),
   btnMontar: $("btn-montar"),
   playersList: $("players-list"),
+  pickerHint: $("picker-hint"),
+  pickerHintTexto: $("picker-hint-texto"),
+  pickerHintCancelar: $("picker-hint-cancelar"),
   fieldWrap: $("field-wrap"),
   fieldSlots: $("field-slots"),
   boxscoreCount: $("boxscore-count"),
@@ -73,9 +79,25 @@ function bandeira(selecao) {
   return FLAGS[selecao] || "🏳️";
 }
 
-function criarLinhaJogador(jogador) {
+function slotsAtuais() {
+  return FORMACOES[formacaoAtual].slots;
+}
+
+function posicoesAtuais() {
+  return FORMACOES[formacaoAtual].posicoes;
+}
+
+function orcamentoAtual() {
+  return parseInt(el.orcamentoSlider.value, 10);
+}
+
+function gastoAtual() {
+  return estadoTime.reduce((soma, j) => soma + (j ? j.preco : 0), 0);
+}
+
+function criarLinhaJogador(jogador, usado) {
   return `
-    <div class="player-row pos-${jogador.posicao}">
+    <div class="player-row pos-${jogador.posicao} ${usado ? "used" : ""}" data-id="${jogador.id}">
       <div class="row-overall">${jogador.overall}</div>
       <div class="row-info">
         <div class="row-nome">${jogador.nome}</div>
@@ -144,34 +166,170 @@ function confetti() {
   }
 }
 
+// ===== SELEÇÃO MANUAL (escolher jogador por posição, estilo 7a0) =====
+function abrirPicker(idx) {
+  slotAtivo = idx;
+  const pos = slotsAtuais()[idx].pos;
+  el.pickerHint.style.display = "flex";
+  el.pickerHintTexto.textContent = `Escolhendo ${POS_LABEL[pos]} — clique num jogador da lista`;
+  renderPlayersList();
+  el.playersList.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function fecharPicker() {
+  slotAtivo = null;
+  el.pickerHint.style.display = "none";
+  renderPlayersList();
+}
+
+function primeiroSlotVazio(pos) {
+  const slots = slotsAtuais();
+  for (let i = 0; i < slots.length; i++) {
+    if (slots[i].pos === pos && !estadoTime[i]) return i;
+  }
+  return -1;
+}
+
+function escalarJogador(idx, jogador) {
+  const precoAntigo = estadoTime[idx] ? estadoTime[idx].preco : 0;
+  const novoGasto = gastoAtual() - precoAntigo + jogador.preco;
+  if (novoGasto > orcamentoAtual()) {
+    alert(`Orçamento insuficiente! Faltam €${novoGasto - orcamentoAtual()}M para escalar ${jogador.nome}.`);
+    return;
+  }
+  estadoTime[idx] = jogador;
+  fecharPicker();
+  renderCampo();
+}
+
+function removerDoSlot(idx) {
+  estadoTime[idx] = null;
+  if (slotAtivo === idx) {
+    slotAtivo = null;
+    el.pickerHint.style.display = "none";
+  }
+  renderCampo();
+}
+
+function aoClicarJogador(jogador) {
+  const idsUsados = new Set(estadoTime.filter(Boolean).map((j) => j.id));
+  if (idsUsados.has(jogador.id)) return;
+
+  if (slotAtivo !== null) {
+    if (slotsAtuais()[slotAtivo].pos !== jogador.posicao) return;
+    escalarJogador(slotAtivo, jogador);
+    return;
+  }
+
+  const idx = primeiroSlotVazio(jogador.posicao);
+  if (idx === -1) {
+    alert(`Todas as vagas de ${POS_LABEL[jogador.posicao]} já estão preenchidas. Clique numa posição no campo para substituir.`);
+    return;
+  }
+  escalarJogador(idx, jogador);
+}
+
 // ===== RENDER: lista de jogadores disponíveis =====
 function renderPlayersList() {
-  const filtro = el.selecaoFilter.value;
-  const lista = filtro ? todosJogadores.filter((j) => j.selecao === filtro) : todosJogadores;
-  el.playersList.innerHTML = lista.map(criarLinhaJogador).join("");
+  const filtroSelecao = el.selecaoFilter.value;
+  let lista = filtroSelecao ? todosJogadores.filter((j) => j.selecao === filtroSelecao) : todosJogadores;
+  if (slotAtivo !== null) {
+    const pos = slotsAtuais()[slotAtivo].pos;
+    lista = lista.filter((j) => j.posicao === pos);
+  }
+  const idsUsados = new Set(estadoTime.filter(Boolean).map((j) => j.id));
+  el.playersList.innerHTML = lista.map((j) => criarLinhaJogador(j, idsUsados.has(j.id))).join("");
+}
+
+// ===== RENDER: campo, box score e orçamento (a partir de estadoTime) =====
+function renderCampo() {
+  const slots = slotsAtuais();
+  const orcamento = orcamentoAtual();
+
+  el.fieldSlots.innerHTML = "";
+  el.teamList.innerHTML = "";
+  let preenchidos = 0;
+
+  slots.forEach((slot, idx) => {
+    const jogador = estadoTime[idx];
+    el.teamList.insertAdjacentHTML("beforeend", criarLinhaBoxScore(slot.pos, jogador));
+
+    const div = document.createElement("div");
+    div.className = "field-slot" + (jogador ? " filled" : " empty");
+    div.dataset.idx = idx;
+    div.style.left = slot.x + "%";
+    div.style.top = slot.y + "%";
+
+    if (jogador) {
+      preenchidos += 1;
+      div.innerHTML = `
+        <button class="slot-remove" data-idx="${idx}" title="Remover">×</button>
+        <div class="slot-circle">${jogador.overall}</div>
+        <div class="slot-name">${jogador.nome}</div>
+        <div class="slot-price">€${jogador.preco}M</div>
+      `;
+    } else {
+      div.innerHTML = `
+        <div class="slot-circle slot-placeholder">+</div>
+        <div class="slot-name">${POS_LABEL[slot.pos]}</div>
+      `;
+    }
+    if (slotAtivo === idx) div.classList.add("active");
+    el.fieldSlots.appendChild(div);
+  });
+
+  el.boxscoreCount.textContent = `${preenchidos}/${slots.length}`;
+
+  const overallTotal = estadoTime.reduce((soma, j) => soma + (j ? j.overall : 0), 0);
+  const overallMedio = preenchidos ? Math.round(overallTotal / preenchidos) : 0;
+  contarAte(el.overallMedio, overallMedio, 500);
+
+  const gasto = gastoAtual();
+  el.gastoValor.textContent = `${gasto}M€`;
+  el.orcamentoTotalValor.textContent = `/ ${orcamento}M€`;
+  el.sobrouValor.textContent = `${orcamento - gasto}M€`;
+
+  const pct = Math.min(100, Math.round((gasto / orcamento) * 100));
+  el.budgetBarFill.style.width = pct + "%";
+  el.budgetBarFill.classList.toggle("over-budget", gasto > orcamento);
+
+  renderPlayersList();
+
+  const completoAgora = preenchidos === slots.length;
+  if (completoAgora && !timeEstavaCompleto) {
+    confetti();
+  }
+  timeEstavaCompleto = completoAgora;
 }
 
 // ===== AÇÕES =====
 async function carregarJogadores() {
   const resp = await fetch("/api/jogadores");
   todosJogadores = await resp.json();
+  el.totalJogadoresBadge.textContent = todosJogadores.length;
   renderPlayersList();
 }
 
-function posicoesAtuais() {
-  return FORMACOES[formacaoAtual].posicoes;
+function resetEstadoTime() {
+  estadoTime = slotsAtuais().map(() => null);
+  slotAtivo = null;
+  timeEstavaCompleto = false;
+  el.pickerHint.style.display = "none";
 }
 
 function selecionarFormacao(formacao) {
+  if (formacao === formacaoAtual) return;
   formacaoAtual = formacao;
   el.formacaoAtualLabel.textContent = formacao;
   el.formationGrid.querySelectorAll(".formation-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.formacao === formacao);
   });
+  resetEstadoTime();
+  renderCampo();
 }
 
 async function montarTime() {
-  const orcamento = parseInt(el.orcamentoSlider.value, 10);
+  const orcamento = orcamentoAtual();
   const selecao = el.selecaoFilter.value || undefined;
 
   el.btnMontar.disabled = true;
@@ -183,91 +341,40 @@ async function montarTime() {
     body: JSON.stringify({ orcamento, posicoes: posicoesAtuais(), selecao }),
   });
   const resultado = await resp.json();
-  timeAtual = resultado;
+
+  const slots = slotsAtuais();
+  const porPosicao = {};
+  resultado.jogadores.forEach((j) => {
+    (porPosicao[j.posicao] = porPosicao[j.posicao] || []).push(j);
+  });
+  estadoTime = slots.map((slot) => (porPosicao[slot.pos] || []).shift() || null);
+  slotAtivo = null;
+  el.pickerHint.style.display = "none";
 
   setTimeout(() => el.fieldWrap.classList.remove("pulse"), 600);
-  renderTime(resultado, orcamento);
+  renderCampo();
 
   el.btnMontar.disabled = false;
 }
 
-function renderTime(resultado, orcamento) {
-  const slots = FORMACOES[formacaoAtual].slots;
-  const jogadoresPorPosicao = {};
-  resultado.jogadores.forEach((j) => {
-    (jogadoresPorPosicao[j.posicao] = jogadoresPorPosicao[j.posicao] || []).push(j);
-  });
-
-  el.fieldSlots.innerHTML = "";
-  el.teamList.innerHTML = "";
-  let delay = 0;
-  let preenchidos = 0;
-
-  slots.forEach((slot) => {
-    const jogador = (jogadoresPorPosicao[slot.pos] || []).shift();
-
-    el.teamList.insertAdjacentHTML("beforeend", criarLinhaBoxScore(slot.pos, jogador));
-
-    if (!jogador) return;
-    preenchidos += 1;
-
-    const div = document.createElement("div");
-    div.className = "field-slot";
-    div.style.left = slot.x + "%";
-    div.style.top = slot.y + "%";
-    div.innerHTML = `
-      <div class="slot-circle">${jogador.overall}</div>
-      <div class="slot-name">${jogador.nome}</div>
-      <div class="slot-price">€${jogador.preco}M</div>
-    `;
-    el.fieldSlots.appendChild(div);
-    setTimeout(() => div.classList.add("filled"), delay);
-    delay += 150;
-  });
-
-  el.boxscoreCount.textContent = `${preenchidos}/${slots.length}`;
-
-  const overallMedio = resultado.jogadores.length
-    ? Math.round(resultado.overall_total / resultado.jogadores.length)
-    : 0;
-  contarAte(el.overallMedio, overallMedio, 800);
-
-  el.gastoValor.textContent = `${resultado.gasto}M€`;
-  el.orcamentoTotalValor.textContent = `/ ${orcamento}M€`;
-  el.sobrouValor.textContent = `${resultado.sobrou}M€`;
-
-  const pct = Math.min(100, Math.round((resultado.gasto / orcamento) * 100));
-  el.budgetBarFill.style.width = pct + "%";
-  el.budgetBarFill.classList.toggle("over-budget", resultado.gasto > orcamento);
-
-  if (preenchidos === slots.length) {
-    setTimeout(confetti, delay);
-  }
-}
-
 function resetar() {
-  timeAtual = null;
-  el.fieldSlots.innerHTML = "";
-  el.teamList.innerHTML = "";
-  el.boxscoreCount.textContent = `0/${FORMACOES[formacaoAtual].slots.length}`;
-  el.overallMedio.textContent = "0";
-  el.gastoValor.textContent = "0M€";
-  el.orcamentoTotalValor.textContent = `/ ${el.orcamentoSlider.value}M€`;
-  el.sobrouValor.textContent = "0M€";
-  el.budgetBarFill.style.width = "0%";
-  el.budgetBarFill.classList.remove("over-budget");
+  resetEstadoTime();
+  renderCampo();
 }
 
 function compartilhar() {
-  if (!timeAtual || !timeAtual.jogadores.length) {
-    alert("Monte um time primeiro para compartilhar!");
+  const escalados = estadoTime.filter(Boolean);
+  if (!escalados.length) {
+    alert("Escale pelo menos um jogador primeiro para compartilhar!");
     return;
   }
-  const overallMedio = Math.round(timeAtual.overall_total / timeAtual.jogadores.length);
-  const linhas = timeAtual.jogadores.map((j) => `${bandeira(j.selecao)} ${j.nome} (${j.overall})`);
+  const overallTotal = escalados.reduce((s, j) => s + j.overall, 0);
+  const overallMedio = Math.round(overallTotal / escalados.length);
+  const gasto = gastoAtual();
+  const linhas = escalados.map((j) => `${bandeira(j.selecao)} ${j.nome} (${j.overall})`);
   const texto =
     `⚡ Dream Team Builder — Copa 2026\n` +
-    `Overall médio: ${overallMedio} | Gasto: €${timeAtual.gasto}M\n\n` +
+    `Overall médio: ${overallMedio} | Gasto: €${gasto}M\n\n` +
     linhas.join("\n");
 
   if (navigator.clipboard) {
@@ -282,6 +389,12 @@ el.orcamentoSlider.addEventListener("input", () => {
   el.orcamentoValor.textContent = el.orcamentoSlider.value;
   el.capacidadeBadge.textContent = el.orcamentoSlider.value;
   el.orcamentoTotalValor.textContent = `/ ${el.orcamentoSlider.value}M€`;
+  const orcamento = orcamentoAtual();
+  const gasto = gastoAtual();
+  const pct = Math.min(100, Math.round((gasto / orcamento) * 100));
+  el.budgetBarFill.style.width = pct + "%";
+  el.budgetBarFill.classList.toggle("over-budget", gasto > orcamento);
+  el.sobrouValor.textContent = `${orcamento - gasto}M€`;
 });
 
 el.formationGrid.addEventListener("click", (e) => {
@@ -291,10 +404,30 @@ el.formationGrid.addEventListener("click", (e) => {
 
 el.selecaoFilter.addEventListener("change", renderPlayersList);
 
+el.playersList.addEventListener("click", (e) => {
+  const row = e.target.closest(".player-row");
+  if (!row || row.classList.contains("used")) return;
+  const jogador = todosJogadores.find((j) => j.id === parseInt(row.dataset.id, 10));
+  if (jogador) aoClicarJogador(jogador);
+});
+
+el.fieldSlots.addEventListener("click", (e) => {
+  const removeBtn = e.target.closest(".slot-remove");
+  if (removeBtn) {
+    removerDoSlot(parseInt(removeBtn.dataset.idx, 10));
+    return;
+  }
+  const slotDiv = e.target.closest(".field-slot");
+  if (slotDiv) abrirPicker(parseInt(slotDiv.dataset.idx, 10));
+});
+
+el.pickerHintCancelar.addEventListener("click", fecharPicker);
+
 el.btnMontar.addEventListener("click", montarTime);
 el.btnResetar.addEventListener("click", resetar);
 el.btnCompartilhar.addEventListener("click", compartilhar);
 
 // ===== INIT =====
-resetar();
+resetEstadoTime();
+renderCampo();
 carregarJogadores();

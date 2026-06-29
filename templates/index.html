@@ -15,8 +15,9 @@
     <div class="header-left">
       <span class="eyebrow">DREAM TEAM BUILDER · 1950 — 2026</span>
       <h1>⚡ Monte sua seleção <span class="accent">dos sonhos</span></h1>
+      <p class="subtitulo">Clique num jogador da lista — ou numa posição do campo — para escalar seu time, igual no 7a0.</p>
     </div>
-    <div class="algo-badge">Knapsack 0/1 · 33 jogadores · <span id="capacidade-badge">250</span>M€</div>
+    <div class="algo-badge">Knapsack 0/1 · <span id="total-jogadores-badge">—</span> jogadores · <span id="capacidade-badge">300</span>M€</div>
   </header>
 
   <main class="app-grid">
@@ -25,8 +26,8 @@
 
       <div class="control-group">
         <span class="field-label">ORÇAMENTO</span>
-        <div class="budget-value"><span id="orcamento-valor">250</span>M€</div>
-        <input type="range" id="orcamento-slider" aria-label="Orçamento em milhões de euros" min="50" max="400" step="5" value="250">
+        <div class="budget-value"><span id="orcamento-valor">300</span>M€</div>
+        <input type="range" id="orcamento-slider" aria-label="Orçamento em milhões de euros" min="220" max="450" step="5" value="300">
       </div>
 
       <div class="control-group">
@@ -59,9 +60,13 @@
         </select>
       </div>
 
-      <button id="btn-montar" class="btn-roll">⚡ MONTAR TIME IDEAL</button>
+      <button id="btn-montar" class="btn-roll">⚡ SUGESTÃO AUTOMÁTICA</button>
 
-      <span class="field-label list-label">JOGADORES DISPONÍVEIS</span>
+      <div class="picker-hint" id="picker-hint" style="display:none">
+        <span id="picker-hint-texto"></span>
+        <button id="picker-hint-cancelar" type="button" title="Cancelar">×</button>
+      </div>
+      <span class="field-label list-label">JOGADORES DISPONÍVEIS <span class="list-sub">— clique para escalar</span></span>
       <div class="players-list" id="players-list"></div>
     </section>
 
@@ -109,7 +114,7 @@
       <div class="budget-bar-wrap">
         <div class="budget-bar-labels">
           <span id="gasto-valor">0M€</span>
-          <span id="orcamento-total-valor">/ 250M€</span>
+          <span id="orcamento-total-valor">/ 300M€</span>
         </div>
         <div class="budget-bar">
           <div class="budget-bar-fill" id="budget-bar-fill"></div>
