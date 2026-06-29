@@ -1,0 +1,126 @@
+/* ===== RESET & BASE ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --color-bg-black: #060608;
+  --color-bg-navy: #0a1530;
+  --color-gold: #d4af37;
+  --color-gold-bright: #f5d57a;
+  --color-gk: #f4c542;
+  --color-def: #3b82f6;
+  --color-mid: #22c55e;
+  --color-atk: #ef4444;
+  --color-text: #e9edf5;
+  --color-text-dim: #9aa4bd;
+  --color-panel: rgba(15, 22, 45, 0.75);
+  --color-panel-border: rgba(212, 175, 55, 0.35);
+}
+
+html, body {
+  min-height: 100vh;
+  font-family: 'Rajdhani', sans-serif;
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at 50% -10%, rgba(212, 175, 55, 0.15), transparent 40%),
+    linear-gradient(160deg, var(--color-bg-black) 0%, var(--color-bg-navy) 55%, var(--color-bg-black) 100%);
+  background-attachment: fixed;
+}
+
+body {
+  border: 1px solid transparent;
+  border-image: linear-gradient(135deg, var(--color-gold), transparent 30%, transparent 70%, var(--color-gold)) 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3 {
+  font-family: 'Bebas Neue', 'Rajdhani', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+/* ===== HEADER ===== */
+.app-header {
+  text-align: center;
+  padding: 18px 16px 12px;
+}
+
+.app-header h1 {
+  font-size: 2.4rem;
+  color: var(--color-gold-bright);
+  text-shadow: 0 0 18px rgba(212, 175, 55, 0.45);
+}
+
+.app-header h1 span {
+  color: var(--color-text);
+  font-size: 1.4rem;
+}
+
+.algo-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  color: var(--color-text-dim);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+#capacidade-badge {
+  color: var(--color-gold-bright);
+  font-weight: 700;
+}
+
+/* ===== LAYOUT 3 COLUNAS ===== */
+.app-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr 340px;
+  gap: 18px;
+  padding: 0 20px 20px;
+  align-items: start;
+}
+
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 14px;
+  padding: 16px;
+  backdrop-filter: blur(6px);
+}
+
+.panel-title {
+  font-size: 1.3rem;
+  color: var(--color-gold-bright);
+  margin-bottom: 14px;
+}
+
+.panel-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-dim);
+  margin: 16px 0 8px;
+  text-transform: uppercase;
+}
+
+.panel-center {
+  min-height: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+/* ===== FOOTER ===== */
+.app-footer {
+  text-align: center;
+  padding: 14px;
+  font-size: 0.85rem;
+  color: var(--color-text-dim);
+  border-top: 1px solid var(--color-panel-border);
+}
