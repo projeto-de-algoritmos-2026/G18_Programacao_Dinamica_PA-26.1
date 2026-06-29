@@ -116,6 +116,165 @@ h1, h2, h3 {
   padding: 10px;
 }
 
+/* ===== CONTROLES (painel esquerdo) ===== */
+.control-group {
+  margin-bottom: 16px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-gold);
+}
+
+.control-group select {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 8px;
+}
+
+.btn-montar {
+  width: 100%;
+  padding: 14px;
+  margin: 6px 0 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  color: #1a1206;
+  background: linear-gradient(135deg, var(--color-gold-bright), var(--color-gold));
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-montar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 24px rgba(245, 213, 122, 0.6);
+}
+
+.btn-montar:active {
+  transform: translateY(0);
+}
+
+.players-list {
+  max-height: 420px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.players-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.players-list::-webkit-scrollbar-thumb {
+  background: var(--color-gold);
+  border-radius: 4px;
+}
+
+/* ===== RESUMO (painel direito) ===== */
+.overall-display {
+  text-align: center;
+  padding: 14px 0 18px;
+}
+
+.overall-number {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 4rem;
+  color: var(--color-gold-bright);
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.55);
+}
+
+.overall-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  color: var(--color-text-dim);
+}
+
+.budget-bar-wrap {
+  margin-bottom: 18px;
+}
+
+.budget-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.budget-bar {
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--color-panel-border);
+  overflow: hidden;
+}
+
+.budget-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--color-mid), var(--color-gold));
+  transition: width 0.6s ease;
+}
+
+.budget-bar-fill.over-budget {
+  background: linear-gradient(90deg, var(--color-atk), #f97316);
+}
+
+.budget-sobrou {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-dim);
+}
+
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 10px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  color: var(--color-text);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--color-gold);
+}
+
 /* ===== FOOTER ===== */
 .app-footer {
   text-align: center;
