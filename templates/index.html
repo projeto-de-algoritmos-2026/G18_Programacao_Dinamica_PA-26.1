@@ -63,7 +63,29 @@
     </section>
 
     <section class="panel panel-center" id="painel-central">
-      <!-- campo de futebol -->
+      <div class="field-wrap" id="field-wrap">
+        <svg class="field-svg" viewBox="0 0 100 140" preserveAspectRatio="none">
+          <rect x="0" y="0" width="100" height="140" class="field-grass" />
+          <rect x="2" y="2" width="96" height="136" class="field-line" />
+          <line x1="2" y1="70" x2="98" y2="70" class="field-line" />
+          <circle cx="50" cy="70" r="10" class="field-line" />
+          <circle cx="50" cy="70" r="0.6" class="field-spot" />
+          <!-- área e gol de baixo -->
+          <rect x="22" y="114" width="56" height="22" class="field-line" />
+          <rect x="38" y="130" width="24" height="6" class="field-line" />
+          <circle cx="50" cy="118" r="0.6" class="field-spot" />
+          <path d="M 38 114 A 12 12 0 0 1 62 114" class="field-line" />
+          <!-- área e gol de cima -->
+          <rect x="22" y="4" width="56" height="22" class="field-line" />
+          <rect x="38" y="4" width="24" height="6" class="field-line" />
+          <circle cx="50" cy="22" r="0.6" class="field-spot" />
+          <path d="M 38 26 A 12 12 0 0 0 62 26" class="field-line" />
+        </svg>
+
+        <div class="field-slots" id="field-slots">
+          <!-- slots dos 11 jogadores, posicionados via JS conforme a formação -->
+        </div>
+      </div>
     </section>
 
     <section class="panel panel-right" id="painel-direito">
