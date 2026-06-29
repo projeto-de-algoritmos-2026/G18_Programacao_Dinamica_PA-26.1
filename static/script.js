@@ -1,6 +1,7 @@
 // ===== ESTADO =====
 let todosJogadores = [];
 let timeAtual = null;
+let formacaoAtual = "4-3-3";
 
 const FLAGS = {
   "Brasil": "🇧🇷", "Argentina": "🇦🇷", "França": "🇫🇷", "Portugal": "🇵🇹",
@@ -9,12 +10,7 @@ const FLAGS = {
   "Egito": "🇪🇬", "Itália": "🇮🇹",
 };
 
-const POS_TAG = {
-  GK: "🧤 Goleiro",
-  DEF: "🛡️ Defesa",
-  MID: "🎯 Meio",
-  ATK: "⚽ Ataque",
-};
+const POS_LABEL = { GK: "GOL", DEF: "ZAG", MID: "MEI", ATK: "ATA" };
 
 // posições (em % do campo) para cada slot, por formação
 const FORMACOES = {
@@ -54,12 +50,14 @@ const el = {
   orcamentoSlider: $("orcamento-slider"),
   orcamentoValor: $("orcamento-valor"),
   capacidadeBadge: $("capacidade-badge"),
-  formacaoSelect: $("formacao-select"),
+  formationGrid: $("formation-grid"),
+  formacaoAtualLabel: $("formacao-atual-label"),
   selecaoFilter: $("selecao-filter"),
   btnMontar: $("btn-montar"),
   playersList: $("players-list"),
   fieldWrap: $("field-wrap"),
   fieldSlots: $("field-slots"),
+  boxscoreCount: $("boxscore-count"),
   overallMedio: $("overall-medio"),
   gastoValor: $("gasto-valor"),
   orcamentoTotalValor: $("orcamento-total-valor"),
@@ -71,31 +69,38 @@ const el = {
 };
 
 // ===== HELPERS =====
-function estrelas(overall) {
-  const n = Math.max(1, Math.min(5, Math.round(overall / 20)));
-  return "★".repeat(n) + "☆".repeat(5 - n);
-}
-
 function bandeira(selecao) {
   return FLAGS[selecao] || "🏳️";
 }
 
-function criarCardHTML(jogador, mini) {
-  const tag = POS_TAG[jogador.posicao] || jogador.posicao;
+function criarLinhaJogador(jogador) {
   return `
-    <div class="player-card pos-${jogador.posicao}${mini ? " mini" : ""}">
-      <div class="player-card-top">
-        <div class="player-card-overall">${jogador.overall}</div>
-        <div class="player-card-info">
-          <div class="player-card-nome">${jogador.nome}</div>
-          <div class="player-card-meta">${bandeira(jogador.selecao)} ${jogador.selecao}</div>
-        </div>
-        <div class="player-card-preco">€${jogador.preco}M</div>
+    <div class="player-row pos-${jogador.posicao}">
+      <div class="row-overall">${jogador.overall}</div>
+      <div class="row-info">
+        <div class="row-nome">${jogador.nome}</div>
+        <div class="row-meta">${bandeira(jogador.selecao)} ${jogador.selecao} · ${jogador.posicao}</div>
       </div>
-      <div class="player-card-bottom">
-        <span class="player-card-tag">${tag}</span>
-        <span class="player-card-stars">${estrelas(jogador.overall)}</span>
+      <div class="row-preco">€${jogador.preco}M</div>
+    </div>
+  `;
+}
+
+function criarLinhaBoxScore(pos, jogador) {
+  if (!jogador) {
+    return `
+      <div class="boxscore-row empty">
+        <span class="boxscore-pos">${POS_LABEL[pos]}</span>
+        <span class="boxscore-name">—</span>
       </div>
+    `;
+  }
+  return `
+    <div class="boxscore-row">
+      <span class="boxscore-pos">${POS_LABEL[pos]}</span>
+      <span class="boxscore-name">${bandeira(jogador.selecao)} ${jogador.nome}</span>
+      <span class="boxscore-overall">${jogador.overall}</span>
+      <span class="boxscore-price">€${jogador.preco}M</span>
     </div>
   `;
 }
@@ -116,7 +121,7 @@ function contarAte(elemento, valorFinal, duracaoMs) {
 }
 
 function confetti() {
-  const cores = ["#d4af37", "#f5d57a", "#22c55e", "#3b82f6", "#ef4444"];
+  const cores = ["#c9962f", "#e6552f", "#16a34a", "#2563eb", "#161410"];
   for (let i = 0; i < 60; i++) {
     const peca = document.createElement("div");
     peca.style.position = "fixed";
@@ -143,7 +148,7 @@ function confetti() {
 function renderPlayersList() {
   const filtro = el.selecaoFilter.value;
   const lista = filtro ? todosJogadores.filter((j) => j.selecao === filtro) : todosJogadores;
-  el.playersList.innerHTML = lista.map((j) => criarCardHTML(j, true)).join("");
+  el.playersList.innerHTML = lista.map(criarLinhaJogador).join("");
 }
 
 // ===== AÇÕES =====
@@ -154,7 +159,15 @@ async function carregarJogadores() {
 }
 
 function posicoesAtuais() {
-  return FORMACOES[el.formacaoSelect.value].posicoes;
+  return FORMACOES[formacaoAtual].posicoes;
+}
+
+function selecionarFormacao(formacao) {
+  formacaoAtual = formacao;
+  el.formacaoAtualLabel.textContent = formacao;
+  el.formationGrid.querySelectorAll(".formation-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.formacao === formacao);
+  });
 }
 
 async function montarTime() {
@@ -179,29 +192,40 @@ async function montarTime() {
 }
 
 function renderTime(resultado, orcamento) {
-  const slots = FORMACOES[el.formacaoSelect.value].slots;
+  const slots = FORMACOES[formacaoAtual].slots;
   const jogadoresPorPosicao = {};
   resultado.jogadores.forEach((j) => {
     (jogadoresPorPosicao[j.posicao] = jogadoresPorPosicao[j.posicao] || []).push(j);
   });
 
   el.fieldSlots.innerHTML = "";
+  el.teamList.innerHTML = "";
   let delay = 0;
+  let preenchidos = 0;
+
   slots.forEach((slot) => {
     const jogador = (jogadoresPorPosicao[slot.pos] || []).shift();
+
+    el.teamList.insertAdjacentHTML("beforeend", criarLinhaBoxScore(slot.pos, jogador));
+
     if (!jogador) return;
+    preenchidos += 1;
+
     const div = document.createElement("div");
     div.className = "field-slot";
     div.style.left = slot.x + "%";
     div.style.top = slot.y + "%";
-    div.innerHTML = criarCardHTML(jogador, true);
+    div.innerHTML = `
+      <div class="slot-circle">${jogador.overall}</div>
+      <div class="slot-name">${jogador.nome}</div>
+      <div class="slot-price">€${jogador.preco}M</div>
+    `;
     el.fieldSlots.appendChild(div);
     setTimeout(() => div.classList.add("filled"), delay);
     delay += 150;
   });
 
-  // resumo (painel direito)
-  el.teamList.innerHTML = resultado.jogadores.map((j) => criarCardHTML(j, true)).join("");
+  el.boxscoreCount.textContent = `${preenchidos}/${slots.length}`;
 
   const overallMedio = resultado.jogadores.length
     ? Math.round(resultado.overall_total / resultado.jogadores.length)
@@ -216,7 +240,7 @@ function renderTime(resultado, orcamento) {
   el.budgetBarFill.style.width = pct + "%";
   el.budgetBarFill.classList.toggle("over-budget", resultado.gasto > orcamento);
 
-  if (resultado.jogadores.length === 11) {
+  if (preenchidos === slots.length) {
     setTimeout(confetti, delay);
   }
 }
@@ -225,6 +249,7 @@ function resetar() {
   timeAtual = null;
   el.fieldSlots.innerHTML = "";
   el.teamList.innerHTML = "";
+  el.boxscoreCount.textContent = `0/${FORMACOES[formacaoAtual].slots.length}`;
   el.overallMedio.textContent = "0";
   el.gastoValor.textContent = "0M€";
   el.orcamentoTotalValor.textContent = `/ ${el.orcamentoSlider.value}M€`;
@@ -259,6 +284,11 @@ el.orcamentoSlider.addEventListener("input", () => {
   el.orcamentoTotalValor.textContent = `/ ${el.orcamentoSlider.value}M€`;
 });
 
+el.formationGrid.addEventListener("click", (e) => {
+  const btn = e.target.closest(".formation-btn");
+  if (btn) selecionarFormacao(btn.dataset.formacao);
+});
+
 el.selecaoFilter.addEventListener("change", renderPlayersList);
 
 el.btnMontar.addEventListener("click", montarTime);
@@ -266,4 +296,5 @@ el.btnResetar.addEventListener("click", resetar);
 el.btnCompartilhar.addEventListener("click", compartilhar);
 
 // ===== INIT =====
+resetar();
 carregarJogadores();

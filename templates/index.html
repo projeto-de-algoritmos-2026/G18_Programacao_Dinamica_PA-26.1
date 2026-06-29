@@ -6,38 +6,41 @@
   <title>Dream Team Builder — Copa do Mundo 2026</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
   <header class="app-header">
-    <h1>⚡ Dream Team Builder <span>— Copa do Mundo 2026</span></h1>
-    <div class="algo-badge">Algoritmo: Knapsack 0/1 | Itens: 33 jogadores | Capacidade: <span id="capacidade-badge">250</span>M€</div>
+    <div class="header-left">
+      <span class="eyebrow">DREAM TEAM BUILDER · 1950 — 2026</span>
+      <h1>⚡ Monte sua seleção <span class="accent">dos sonhos</span></h1>
+    </div>
+    <div class="algo-badge">Knapsack 0/1 · 33 jogadores · <span id="capacidade-badge">250</span>M€</div>
   </header>
 
   <main class="app-grid">
 
     <section class="panel panel-left" id="painel-esquerdo">
-      <h2 class="panel-title">🎛️ Filtros &amp; Controles</h2>
 
       <div class="control-group">
-        <label for="orcamento-slider">💰 Orçamento <span id="orcamento-valor">250</span>M€</label>
-        <input type="range" id="orcamento-slider" min="50" max="400" step="5" value="250">
+        <span class="field-label">ORÇAMENTO</span>
+        <div class="budget-value"><span id="orcamento-valor">250</span>M€</div>
+        <input type="range" id="orcamento-slider" aria-label="Orçamento em milhões de euros" min="50" max="400" step="5" value="250">
       </div>
 
       <div class="control-group">
-        <label for="formacao-select">🧩 Formação</label>
-        <select id="formacao-select">
-          <option value="4-3-3" selected>4-3-3</option>
-          <option value="4-4-2">4-4-2</option>
-          <option value="3-5-2">3-5-2</option>
-        </select>
+        <span class="field-label">FORMAÇÃO</span>
+        <div class="formation-grid" id="formation-grid">
+          <button class="formation-btn active" data-formacao="4-3-3">4-3-3</button>
+          <button class="formation-btn" data-formacao="4-4-2">4-4-2</button>
+          <button class="formation-btn" data-formacao="3-5-2">3-5-2</button>
+        </div>
       </div>
 
       <div class="control-group">
-        <label for="selecao-filter">🌍 Filtrar por seleção</label>
-        <select id="selecao-filter">
+        <span class="field-label">FILTRAR POR SELEÇÃO</span>
+        <select id="selecao-filter" aria-label="Filtrar jogadores por seleção">
           <option value="">Todas as seleções</option>
           <option value="Brasil">🇧🇷 Brasil</option>
           <option value="Argentina">🇦🇷 Argentina</option>
@@ -56,13 +59,18 @@
         </select>
       </div>
 
-      <button id="btn-montar" class="btn-montar">⚡ MONTAR TIME IDEAL</button>
+      <button id="btn-montar" class="btn-roll">⚡ MONTAR TIME IDEAL</button>
 
-      <h3 class="panel-subtitle">Jogadores disponíveis</h3>
+      <span class="field-label list-label">JOGADORES DISPONÍVEIS</span>
       <div class="players-list" id="players-list"></div>
     </section>
 
     <section class="panel panel-center" id="painel-central">
+      <div class="field-topbar">
+        <span id="formacao-atual-label">4-3-3</span>
+        <span class="dot">·</span>
+        <span>CLÁSSICO</span>
+      </div>
       <div class="field-wrap" id="field-wrap">
         <svg class="field-svg" viewBox="0 0 100 140" preserveAspectRatio="none">
           <rect x="0" y="0" width="100" height="140" class="field-grass" />
@@ -89,7 +97,9 @@
     </section>
 
     <section class="panel panel-right" id="painel-direito">
-      <h2 class="panel-title">📊 Resumo do Time</h2>
+      <div class="boxscore-header">
+        <span class="field-label">BOX SCORE · <span id="boxscore-count">0/11</span></span>
+      </div>
 
       <div class="overall-display">
         <span class="overall-number" id="overall-medio">0</span>
@@ -110,8 +120,8 @@
       <div class="team-list" id="team-list"></div>
 
       <div class="action-buttons">
-        <button id="btn-resetar" class="btn-secondary">🔄 Resetar</button>
-        <button id="btn-compartilhar" class="btn-secondary">📤 Compartilhar</button>
+        <button id="btn-resetar" class="btn-outline">↺ RESETAR</button>
+        <button id="btn-compartilhar" class="btn-outline">↗ COMPARTILHAR</button>
       </div>
     </section>
 
