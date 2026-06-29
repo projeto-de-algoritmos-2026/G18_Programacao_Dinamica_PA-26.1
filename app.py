@@ -47,6 +47,34 @@ players = [
 ]
 
 
+def knapsack_time(jogadores, orcamento):
+    """Knapsack 0/1: maximiza overall somado sem exceder o orçamento."""
+    n = len(jogadores)
+    W = orcamento
+    if n == 0 or W <= 0:
+        return [], 0
+
+    # dp[i][w] = maior overall somado usando os i primeiros jogadores com orçamento w
+    dp = [[0] * (W + 1) for _ in range(n + 1)]
+    for i in range(1, n + 1):
+        preco = jogadores[i - 1]["preco"]
+        overall = jogadores[i - 1]["overall"]
+        for w in range(W + 1):
+            dp[i][w] = dp[i - 1][w]
+            if preco <= w:
+                dp[i][w] = max(dp[i][w], overall + dp[i - 1][w - preco])
+
+    # backtracking para descobrir quais jogadores foram selecionados
+    selecionados = []
+    w = W
+    for i in range(n, 0, -1):
+        if dp[i][w] != dp[i - 1][w]:
+            selecionados.append(jogadores[i - 1])
+            w -= jogadores[i - 1]["preco"]
+
+    return selecionados, dp[n][W]
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
